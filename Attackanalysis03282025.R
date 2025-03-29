@@ -11,6 +11,7 @@ library(flextable)
 library(sf)
 library(rnaturalearth)
 library(rnaturalearthdata)
+library(tidyverse)
 
 
 setwd("C:/Users/MMcWeeney/Potomac Institute for Policy Studies/ICTS Terrorism - Documents/Kalaris Conference/Attack Analysis/MahdiArmyAttacks")
@@ -175,18 +176,38 @@ map_data <- map_data %>%
   filter(!is.na(Weapon) & !is.na(Combined2))
 
 ggplot() +
-  geom_sf(data = iraq_map, fill = "gray90", color = "black") +  # Iraq country map
+  geom_sf(data = iraq_map, fill = "white", color = "black") +  # White map background
   geom_point(data = map_data, aes(x = Longitude, y = Latitude, 
                                   size = Killed, 
                                   color = Weapon, 
                                   shape = Combined2), 
-             alpha = 0.7) +  # Attack locations with size by fatalities
-  scale_size(range = c(2, 10), name = "Fatalities") +  # Adjust circle size scale
+             alpha = 0.8, stroke = 1.2) +  # Bolder symbols with increased stroke
+  scale_size(range = c(4, 12), name = "Fatalities") +  # Bigger symbols
+  scale_shape_manual(values = c(16, 17, 8, 18, 15, 3, 4, 7)) +  # Adjusted for more attack types
   labs(title = "Map of Attack Locations in Iraq (Fatalities, Weapon, and Attack Type)",
        x = "Longitude", 
        y = "Latitude",
        color = "Weapon Type",
        shape = "Attack Type") +  # Update legend labels
-  theme_minimal() +
+  theme_minimal() +  # Completely white background
   theme(legend.position = "right", legend.title = element_text(size = 10)) +  # Keep legends visible
-  coord_sf(xlim = c(38, 49), ylim = c(29, 38))  # Zoom into Iraq
+  coord_sf(xlim = c(41, 47), ylim = c(31, 37))
+
+#Appendix Table
+
+ma2 <- ma[, 1:(ncol(ma) - 3)]
+
+ft2 <- flextable(ma2) %>%
+  set_table_properties(width = 1, layout = "autofit") %>%  # Autofit to reduce spaces
+  fontsize(size = 8) %>%  # Set font size
+  font(part = "all", fontname = "Times New Roman") %>%  # Set font type
+  padding(padding = 2, part = "all")  # Reduce spacing in rows & columns
+
+# Create a Word document with landscape orientation
+doc2 <- read_docx() %>%
+  body_add_par("Exported Data Table", style = "heading 1") %>%  # Add title
+  body_add_flextable(ft2) %>%
+  body_end_section_landscape()  # Set document to landscape
+
+# Save the document
+print(doc2, target = "DataTable_Landscape.docx")
